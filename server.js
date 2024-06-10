@@ -94,4 +94,4 @@ io.on("connection", (socket) => {
 // Check for inactive users every 10 seconds
 setInterval(removeInactiveUsers, 10000);
 
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
