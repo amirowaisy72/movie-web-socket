@@ -67,6 +67,10 @@ io.on("connection", (socket) => {
       });
     }
   });
+  
+  socket.on("message", (message)=>{
+    
+  })
 
   // Handle client disconnection
   socket.on("disconnect", () => {
