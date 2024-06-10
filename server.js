@@ -67,10 +67,11 @@ io.on("connection", (socket) => {
       });
     }
   });
-  
-  socket.on("message", (message)=>{
+
+  socket.on("message", (message) => {
+    io.emit("adminMessage", message)
     
-  })
+  });
 
   // Handle client disconnection
   socket.on("disconnect", () => {
