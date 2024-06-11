@@ -28,11 +28,19 @@ const getConnectedUserNames = () => {
     .map((user) => user.name);
 };
 
+// Helper function to format time in "minutes:seconds"
+const formatTime = (timeInMilliseconds) => {
+  const totalSeconds = Math.floor(timeInMilliseconds / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes} minutes, ${seconds} seconds`;
+};
+
 // Helper function to calculate and emit todayUsers
 const getTodayUsers = () => {
   return [...todayUsersMap.entries()].map(([username, totalOnlineTime]) => ({
     username,
-    totalOnlineMinutesToday: `${Math.floor(totalOnlineTime / 60000)} minutes`,
+    totalOnlineMinutesToday: formatTime(totalOnlineTime),
   }));
 };
 
