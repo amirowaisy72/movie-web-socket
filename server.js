@@ -29,12 +29,11 @@ const getConnectedUserNames = () => {
 };
 
 // Helper function to calculate and emit todayUsers
-const emitTodayUsers = () => {
-  const todayUsers = [...todayUsersMap.entries()].map(([username, totalOnlineTime]) => ({
+const getTodayUsers = () => {
+  return [...todayUsersMap.entries()].map(([username, totalOnlineTime]) => ({
     username,
     totalOnlineMinutesToday: `${Math.floor(totalOnlineTime / 60000)} minutes`,
   }));
-  io.emit("todayUsers", todayUsers);
 };
 
 // Function to remove a user from connectedUsers if there's no activity for 30 seconds
@@ -45,7 +44,6 @@ const removeInactiveUsers = () => {
       // 30 seconds
       user.active = false; // Mark user as inactive
       io.emit("connectedUsers", getConnectedUserNames());
-      emitTodayUsers(); // Emit updated todayUsers list
     }
   }
 };
@@ -53,7 +51,6 @@ const removeInactiveUsers = () => {
 // Function to reset the todayUsersMap at midnight
 const resetTodayUsers = () => {
   todayUsersMap.clear();
-  io.emit("todayUsers", []);
 };
 
 // Socket.IO connection handler
@@ -78,7 +75,6 @@ io.on("connection", (socket) => {
         todayUsersMap.set(name, 0);
       }
       io.emit("connectedUsers", getConnectedUserNames());
-      emitTodayUsers(); // Emit updated todayUsers list
     } else {
       // If user exists, update their socket ID and last activity timestamp
       connectedUsers.forEach((user, socketId) => {
@@ -104,7 +100,6 @@ io.on("connection", (socket) => {
       const user = connectedUsers.get(socket.id);
       connectedUsers.delete(socket.id);
       io.emit("connectedUsers", getConnectedUserNames());
-      emitTodayUsers(); // Emit updated todayUsers list
     }
   });
 
@@ -122,7 +117,6 @@ io.on("connection", (socket) => {
         user.active = true;
         io.emit("connectedUsers", getConnectedUserNames());
       }
-      emitTodayUsers(); // Emit updated todayUsers list
     }
   });
 });
@@ -145,5 +139,10 @@ setTimeout(() => {
   resetTodayUsers();
   setInterval(resetTodayUsers, 24 * 60 * 60 * 1000);
 }, timeToMidnight);
+
+// Add an endpoint to serve todayUsers data
+app.get("/todayUsers", (req, res) => {
+  res.json(getTodayUsers());
+});
 
 server.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
