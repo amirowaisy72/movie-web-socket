@@ -18,6 +18,9 @@ const PORT = process.env.PORT || 4000;
 // Maintain a map of socket IDs to user names along with their last activity timestamp
 const connectedUsers = new Map();
 
+// Maintain a map of user names to their total online time for today
+const todayUsersMap = new Map();
+
 // Helper function to get an array of user names
 const getConnectedUserNames = () => {
   return [...connectedUsers.values()]
@@ -27,9 +30,9 @@ const getConnectedUserNames = () => {
 
 // Helper function to calculate and emit todayUsers
 const emitTodayUsers = () => {
-  const todayUsers = [...connectedUsers.values()].map((user) => ({
-    username: user.name,
-    totalOnlineMinutesToday: `${Math.floor(user.totalOnlineTime / 60000)} minutes`,
+  const todayUsers = [...todayUsersMap.entries()].map(([username, totalOnlineTime]) => ({
+    username,
+    totalOnlineMinutesToday: `${Math.floor(totalOnlineTime / 60000)} minutes`,
   }));
   io.emit("todayUsers", todayUsers);
 };
@@ -45,6 +48,12 @@ const removeInactiveUsers = () => {
       emitTodayUsers(); // Emit updated todayUsers list
     }
   }
+};
+
+// Function to reset the todayUsersMap at midnight
+const resetTodayUsers = () => {
+  todayUsersMap.clear();
+  io.emit("todayUsers", []);
 };
 
 // Socket.IO connection handler
@@ -64,6 +73,10 @@ io.on("connection", (socket) => {
         active: true,
         totalOnlineTime: 0, // Initialize total online time
       });
+      // Initialize total online time for today if not already present
+      if (!todayUsersMap.has(name)) {
+        todayUsersMap.set(name, 0);
+      }
       io.emit("connectedUsers", getConnectedUserNames());
       emitTodayUsers(); // Emit updated todayUsers list
     } else {
@@ -88,6 +101,7 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     // Remove the user from connectedUsers
     if (connectedUsers.has(socket.id)) {
+      const user = connectedUsers.get(socket.id);
       connectedUsers.delete(socket.id);
       io.emit("connectedUsers", getConnectedUserNames());
       emitTodayUsers(); // Emit updated todayUsers list
@@ -100,8 +114,10 @@ io.on("connection", (socket) => {
     if (connectedUsers.has(socket.id)) {
       const user = connectedUsers.get(socket.id);
       const currentTime = Date.now();
-      user.totalOnlineTime += currentTime - user.lastActivity;
+      const timeSpent = currentTime - user.lastActivity;
+      user.totalOnlineTime += timeSpent;
       user.lastActivity = currentTime;
+      todayUsersMap.set(user.name, (todayUsersMap.get(user.name) || 0) + timeSpent);
       if (!user.active) {
         user.active = true;
         io.emit("connectedUsers", getConnectedUserNames());
@@ -113,5 +129,21 @@ io.on("connection", (socket) => {
 
 // Check for inactive users every 10 seconds
 setInterval(removeInactiveUsers, 10000);
+
+// Schedule the reset of todayUsersMap at midnight
+const now = new Date();
+const midnight = new Date(
+  now.getFullYear(),
+  now.getMonth(),
+  now.getDate() + 1,
+  0,
+  0,
+  0
+);
+const timeToMidnight = midnight - now;
+setTimeout(() => {
+  resetTodayUsers();
+  setInterval(resetTodayUsers, 24 * 60 * 60 * 1000);
+}, timeToMidnight);
 
 server.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
