@@ -153,4 +153,9 @@ app.get("/todayUsers", (req, res) => {
   res.json(getTodayUsers());
 });
 
+// Add an endpoint to serve connected users data
+app.get("/connectedUsers", (req, res) => {
+  res.json(getConnectedUserNames());
+});
+
 server.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
