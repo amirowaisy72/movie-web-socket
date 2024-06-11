@@ -25,7 +25,16 @@ const getConnectedUserNames = () => {
     .map((user) => user.name);
 };
 
-// Function to remove a user from connectedUsers if there's no activity for 10 seconds
+// Helper function to calculate and emit todayUsers
+const emitTodayUsers = () => {
+  const todayUsers = [...connectedUsers.values()].map((user) => ({
+    username: user.name,
+    totalOnlineMinutesToday: `${Math.floor(user.totalOnlineTime / 60000)} minutes`,
+  }));
+  io.emit("todayUsers", todayUsers);
+};
+
+// Function to remove a user from connectedUsers if there's no activity for 30 seconds
 const removeInactiveUsers = () => {
   const currentTime = Date.now();
   for (const [socketId, user] of connectedUsers.entries()) {
@@ -33,6 +42,7 @@ const removeInactiveUsers = () => {
       // 30 seconds
       user.active = false; // Mark user as inactive
       io.emit("connectedUsers", getConnectedUserNames());
+      emitTodayUsers(); // Emit updated todayUsers list
     }
   }
 };
@@ -52,14 +62,16 @@ io.on("connection", (socket) => {
         name,
         lastActivity: Date.now(),
         active: true,
+        totalOnlineTime: 0, // Initialize total online time
       });
       io.emit("connectedUsers", getConnectedUserNames());
+      emitTodayUsers(); // Emit updated todayUsers list
     } else {
       // If user exists, update their socket ID and last activity timestamp
       connectedUsers.forEach((user, socketId) => {
         if (user.name === name) {
           connectedUsers.set(socketId, {
-            name,
+            ...user,
             lastActivity: Date.now(),
             active: true,
           });
@@ -69,8 +81,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("message", (message) => {
-    io.emit("adminMessage", message)
-    
+    io.emit("adminMessage", message);
   });
 
   // Handle client disconnection
@@ -79,6 +90,7 @@ io.on("connection", (socket) => {
     if (connectedUsers.has(socket.id)) {
       connectedUsers.delete(socket.id);
       io.emit("connectedUsers", getConnectedUserNames());
+      emitTodayUsers(); // Emit updated todayUsers list
     }
   });
 
@@ -87,11 +99,14 @@ io.on("connection", (socket) => {
     // Update the user's last activity timestamp and set them as active
     if (connectedUsers.has(socket.id)) {
       const user = connectedUsers.get(socket.id);
-      user.lastActivity = Date.now();
+      const currentTime = Date.now();
+      user.totalOnlineTime += currentTime - user.lastActivity;
+      user.lastActivity = currentTime;
       if (!user.active) {
         user.active = true;
         io.emit("connectedUsers", getConnectedUserNames());
       }
+      emitTodayUsers(); // Emit updated todayUsers list
     }
   });
 });
