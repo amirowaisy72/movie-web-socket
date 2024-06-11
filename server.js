@@ -50,7 +50,9 @@ const removeInactiveUsers = () => {
   for (const [socketId, user] of connectedUsers.entries()) {
     if (currentTime - user.lastActivity > 30000) {
       // 30 seconds
-      user.active = false; // Mark user as inactive
+      const timeSpent = currentTime - user.lastActivity;
+      todayUsersMap.set(user.name, (todayUsersMap.get(user.name) || 0) + timeSpent);
+      connectedUsers.delete(socketId); // Remove the user
       io.emit("connectedUsers", getConnectedUserNames());
     }
   }
@@ -76,7 +78,6 @@ io.on("connection", (socket) => {
         name,
         lastActivity: Date.now(),
         active: true,
-        totalOnlineTime: 0, // Initialize total online time
       });
       // Initialize total online time for today if not already present
       if (!todayUsersMap.has(name)) {
@@ -106,11 +107,14 @@ io.on("connection", (socket) => {
     // Remove the user from connectedUsers
     if (connectedUsers.has(socket.id)) {
       const user = connectedUsers.get(socket.id);
+      const currentTime = Date.now();
+      const timeSpent = currentTime - user.lastActivity;
+      todayUsersMap.set(user.name, (todayUsersMap.get(user.name) || 0) + timeSpent);
       connectedUsers.delete(socket.id);
       io.emit("connectedUsers", getConnectedUserNames());
     }
   });
-
+s
   // Listen for user activity events
   socket.on("userActivity", () => {
     // Update the user's last activity timestamp and set them as active
@@ -118,13 +122,10 @@ io.on("connection", (socket) => {
       const user = connectedUsers.get(socket.id);
       const currentTime = Date.now();
       const timeSpent = currentTime - user.lastActivity;
-      user.totalOnlineTime += timeSpent;
-      user.lastActivity = currentTime;
       todayUsersMap.set(user.name, (todayUsersMap.get(user.name) || 0) + timeSpent);
-      if (!user.active) {
-        user.active = true;
-        io.emit("connectedUsers", getConnectedUserNames());
-      }
+      user.lastActivity = currentTime;
+      user.active = true;
+      io.emit("connectedUsers", getConnectedUserNames());
     }
   });
 });
