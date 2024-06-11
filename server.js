@@ -114,7 +114,7 @@ io.on("connection", (socket) => {
       io.emit("connectedUsers", getConnectedUserNames());
     }
   });
-s
+
   // Listen for user activity events
   socket.on("userActivity", () => {
     // Update the user's last activity timestamp and set them as active
