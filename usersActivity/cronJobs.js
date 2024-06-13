@@ -51,7 +51,7 @@ const setCronJobs = (io) => {
 
     // Reset todayUsersMap
     todayUsersMap.clear();
-  }, 10000); // 600000 ms = 10 minutes
+  }, 900000); // 900000  ms = 10 minutes
 };
 
 module.exports = { setCronJobs };
