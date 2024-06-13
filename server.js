@@ -1,4 +1,5 @@
 const express = require("express");
+const connectToMongoose = require("./db");
 const http = require("http");
 const socketIo = require("socket.io");
 const cors = require("cors");
@@ -8,6 +9,8 @@ const {
   getTodayUsersHandler,
   getConnectedUsersHandler,
 } = require("./usersActivity/routes");
+
+connectToMongoose();
 
 const app = express();
 app.use(cors());
@@ -27,7 +30,7 @@ io.on("connection", (socket) => {
 });
 
 // Define routes
-app.get("/todayUsers", getTodayUsersHandler);
+app.get("/usersData", getTodayUsersHandler);
 app.get("/connectedUsers", getConnectedUsersHandler);
 
 // Set up cron jobs

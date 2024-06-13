@@ -34,10 +34,6 @@ const removeInactiveUsers = (io) => {
   }
 };
 
-const resetTodayUsers = () => {
-  todayUsersMap.clear();
-};
-
 module.exports = {
   connectedUsers,
   todayUsersMap,
@@ -45,5 +41,4 @@ module.exports = {
   formatTime,
   getTodayUsers,
   removeInactiveUsers,
-  resetTodayUsers,
 };
