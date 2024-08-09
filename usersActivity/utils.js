@@ -4,7 +4,10 @@ const todayUsersMap = new Map();
 const getConnectedUserNames = () => {
   return [...connectedUsers.values()]
     .filter((user) => user.active)
-    .map((user) => user.name);
+    .map((user) => ({
+      name: user.name,
+      referer: user.referer,
+    }));
 };
 
 const formatTime = (timeInMilliseconds) => {
@@ -15,10 +18,13 @@ const formatTime = (timeInMilliseconds) => {
 };
 
 const getTodayUsers = () => {
-  return [...todayUsersMap.entries()].map(([username, totalOnlineTime]) => ({
-    username,
-    totalOnlineMinutesToday: formatTime(totalOnlineTime),
-  }));
+  return [...todayUsersMap.entries()].map(
+    ([username, { totalOnlineTime, referer }]) => ({
+      username,
+      referer,
+      totalOnlineMinutesToday: formatTime(totalOnlineTime),
+    })
+  );
 };
 
 const removeInactiveUsers = (io) => {
@@ -29,7 +35,14 @@ const removeInactiveUsers = (io) => {
       io.emit("connectedUsers", getConnectedUserNames());
     } else {
       // If user is still active, add 10 seconds to their todayUsersMap entry
-      todayUsersMap.set(user.name, (todayUsersMap.get(user.name) || 0) + 10000);
+      const userData = todayUsersMap.get(user.name) || {
+        totalOnlineTime: 0,
+        referer: user.referer,
+      };
+      todayUsersMap.set(user.name, {
+        totalOnlineTime: userData.totalOnlineTime + 10000,
+        referer: userData.referer,
+      });
     }
   }
 };

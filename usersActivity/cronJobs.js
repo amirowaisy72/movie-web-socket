@@ -16,7 +16,7 @@ const setCronJobs = (io) => {
     const todayUsers = getTodayUsers();
     const endOfToday = moment.tz("Asia/Karachi").endOf("day").toDate();
 
-    for (const { username, totalOnlineMinutesToday } of todayUsers) {
+    for (const { username, totalOnlineMinutesToday, referer } of todayUsers) {
       const user = await Users.findOne({ username, date: endOfToday });
 
       if (user) {
@@ -43,6 +43,7 @@ const setCronJobs = (io) => {
         // Create a new user
         await Users.create({
           username,
+          referer, // Add referer here
           totalOnlineTime: totalOnlineMinutesToday,
           date: endOfToday,
         });
@@ -51,7 +52,8 @@ const setCronJobs = (io) => {
 
     // Reset todayUsersMap
     todayUsersMap.clear();
-  }, 900000); // 900000  ms = 10 minutes
+  }, 900000); // 900000 ms = 10 minutes
 };
 
 module.exports = { setCronJobs };
+
