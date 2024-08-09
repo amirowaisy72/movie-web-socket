@@ -40,7 +40,7 @@ const setCronJobs = (io) => {
         user.totalOnlineTime = `${totalMinutes} minutes, ${totalSeconds} seconds`;
         await user.save();
       } else {
-        const locationResponse = await fetch(`https://ipinfo.io/${ip}/json`);
+        const locationResponse = await fetch(`https://ipinfo.io/${username}/json`);
         const data = await locationResponse.json();
 
         // Create a new user
