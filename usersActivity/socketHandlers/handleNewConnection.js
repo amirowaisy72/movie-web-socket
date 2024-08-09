@@ -1,8 +1,4 @@
-const {
-  connectedUsers,
-  todayUsersMap,
-  getConnectedUserNames,
-} = require("../utils");
+const { connectedUsers, todayUsersMap } = require("../utils");
 const { emitConnectedUsers } = require("./emitConnectedUsers");
 
 const handleNewConnection = (socket, io) => (name) => {
