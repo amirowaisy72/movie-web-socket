@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const url =
-  "mongodb+srv://amirowaisy72:iVVKYSj5rugATyVg@cluster0.mpb1bfz.mongodb.net/ecommerce-osc-usersActivity";
+  "mongodb+srv://amirowaisy72:iVVKYSj5rugATyVg@cluster0.mpb1bfz.mongodb.net/movies-usersActivity";
 mongoose.set("strictQuery", false);
 // const url =
 //   "mongodb+srv://amirowaisy72:iVVKYSj5rugATyVg@cluster0.mpb1bfz.mongodb.net/ecommerce-minnie-usersActivity";
