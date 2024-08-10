@@ -7,7 +7,6 @@ const getKarachiTime = () => moment.tz("Asia/Karachi").toDate();
 
 const userSchema = new Schema({
   username: { type: String, required: true },
-  referer: { type: String },
   totalOnlineTime: { type: String, default: "0 minutes, 0 seconds" },
   city: { type: String },
   country: { type: String },
