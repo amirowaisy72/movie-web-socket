@@ -1,7 +1,11 @@
-const { connectedUsers, todayUsersMap } = require("../utils");
+const {
+  connectedUsers,
+  todayUsersMap,
+  getConnectedUserNames,
+} = require("../utils");
 const { emitConnectedUsers } = require("./emitConnectedUsers");
 
-const handleNewConnection = (socket, io) => (name, referer) => {
+const handleNewConnection = (socket, io) => (name) => {
   const userExists = [...connectedUsers.values()].some(
     (user) => user.name === name
   );
@@ -9,12 +13,11 @@ const handleNewConnection = (socket, io) => (name, referer) => {
   if (!userExists) {
     connectedUsers.set(socket.id, {
       name,
-      referer,
       lastActivity: Date.now(),
       active: true,
     });
     if (!todayUsersMap.has(name)) {
-      todayUsersMap.set(name, { totalOnlineTime: 0, referer });
+      todayUsersMap.set(name, 0);
     }
     emitConnectedUsers(io);
   } else {
